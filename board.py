@@ -1,53 +1,41 @@
 import numpy as np
-import pygame 
-from constants import *
+import pygame
 
+BOARD_SIZE = 8
+SQUARE_SIZE = 60
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+GREEN = (0, 128, 0)
 
-class Board:
-    def __init__(self):
-        self.board = self.create_board()
+WIDTH, HEIGHT = 8 * SQUARE_SIZE, 8 * SQUARE_SIZE
 
-    def create_board(self):
-        board = np.zeros((BOARD_SIZE, BOARD_SIZE)) # 8 x 8
-        board[3][3], board[3][4] = 1, -1 # white is 1, black is -1
-        board[4][3], board[4][4] = -1, 1
-        return board
+def create_board():
+    board = np.zeros((BOARD_SIZE, BOARD_SIZE))
+    board[3][3], board[3][4] = 1, -1
+    board[4][3], board[4][4] = -1, 1
+    return board
+
+def draw_board(screen, board, white_count, black_count):
+    screen.fill(GREEN)
+    font = pygame.font.Font(None, 36)
     
-    def draw_board(self, screen):
-        screen.fill(GREEN)
-        for y in range(BOARD_SIZE):
-            for x in range(BOARD_SIZE):
-                rect = pygame.Rect(x * SQUARE_SIZE, y * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
-                pygame.draw.rect(screen, BLACK, rect, 1)
-                # Draw chess
-                if self.board[y][x] == 1:
-                    pygame.draw.circle(screen, WHITE, rect.center, SQUARE_SIZE // 2 - 5)
-                elif self.board[y][x] == -1:
-                    pygame.draw.circle(screen, BLACK, rect.center, SQUARE_SIZE // 2 - 5)
-        # Update screen
-        pygame.display.flip() 
+    for y in range(BOARD_SIZE):
+        for x in range(BOARD_SIZE):
+            rect = pygame.Rect(x * SQUARE_SIZE, y * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE)
+            pygame.draw.rect(screen, BLACK, rect, 1)
+            if board[y][x] == 1:
+                pygame.draw.circle(screen, WHITE, rect.center, SQUARE_SIZE // 2 - 2)
+            elif board[y][x] == -1:
+                pygame.draw.circle(screen, BLACK, rect.center, SQUARE_SIZE // 2 - 2)
 
-    def make_move(self, row, col, player):
-        self.board[row][col] = player
+    white_text = font.render(f'White: {white_count}', True, WHITE)
+    black_text = font.render(f'Black: {black_count}', True, BLACK)
+    screen.blit(white_text, (10, HEIGHT - 40))
+    screen.blit(black_text, (WIDTH - 150, HEIGHT - 40))
+    
+    pygame.display.flip()
 
-    def valid_move(self, row, col, player):
-        # Neu khong phai o trong
-        if self.board[row][col] != 0:
-            return False
-        for direction in DIRECTIONS:
-            for i in range(1, BOARD_SIZE):
-                # x, y la cac huong xung quanh vi tri neu dat quan co
-                x, y = row + direction[0] * i, col + direction[1] * i
-                # Neu direction do ra ngoai ban co
-                if x < 0 or y < 0 or x >= BOARD_SIZE or y >= BOARD_SIZE:
-                    break
-                # Neu direction do la o trong
-                if self.board[x][y] == 0:
-                    break
-                if self.board[x][y] == player:
-                    if i > 1:
-                        return True
-                    else:
-                        break
-        return False
-       
+def count_pieces(board):
+    white_count = np.sum(board == 1)
+    black_count = np.sum(board == -1)
+    return white_count, black_count
